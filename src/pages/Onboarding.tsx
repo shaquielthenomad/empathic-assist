@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import {
   Card,
   CardContent,
@@ -30,13 +30,26 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedTier, setSelectedTier] = useState("Partner");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleContinue = async () => {
+    setIsLoading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Authentication Error",
+          description: "Please verify your email before continuing.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from("user_preferences")
         .update({ membership_tier: selectedTier })
-        .eq("id", (await supabase.auth.getUser()).data.user?.id);
+        .eq("id", user.id);
 
       if (error) throw error;
 
@@ -53,6 +66,8 @@ const Onboarding = () => {
         description: "Failed to update membership tier. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -97,8 +112,9 @@ const Onboarding = () => {
             size="lg"
             className="bg-amber hover:bg-amber/90 text-cafe"
             onClick={handleContinue}
+            disabled={isLoading}
           >
-            Continue to Dashboard
+            {isLoading ? "Processing..." : "Continue to Dashboard"}
           </Button>
         </div>
       </div>
