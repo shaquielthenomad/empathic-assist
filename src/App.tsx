@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
+import ServiceRequest from "./pages/ServiceRequest";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,26 @@ const App = () => {
                 )
               }
             />
+            {/* Service Request Routes */}
+            {[
+              "/hotel-request",
+              "/flight-request",
+              "/dining-request",
+              "/transport-request",
+              "/event-request"
+            ].map((path) => (
+              <Route
+                key={path}
+                path={path}
+                element={
+                  isAuthenticated ? (
+                    <ServiceRequest />
+                  ) : (
+                    <Navigate to="/auth" replace />
+                  )
+                }
+              />
+            ))}
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

@@ -1,0 +1,19 @@
+{
+  "countries": [
+    {
+      "name": "United States",
+      "code": "US",
+      "dial_code": "+1"
+    },
+    {
+      "name": "United Kingdom",
+      "code": "GB",
+      "dial_code": "+44"
+    },
+    {
+      "name": "France",
+      "code": "FR",
+      "dial_code": "+33"
+    }
+  ]
+}

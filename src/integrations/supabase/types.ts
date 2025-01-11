@@ -48,6 +48,45 @@ export type Database = {
         }
         Relationships: []
       }
+      travel_requests: {
+        Row: {
+          created_at: string
+          departure_date: string | null
+          destination: string | null
+          id: string
+          notes: string | null
+          request_type: string
+          return_date: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          departure_date?: string | null
+          destination?: string | null
+          id?: string
+          notes?: string | null
+          request_type: string
+          return_date?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          departure_date?: string | null
+          destination?: string | null
+          id?: string
+          notes?: string | null
+          request_type?: string
+          return_date?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           created_at: string | null
@@ -72,6 +111,39 @@ export type Database = {
           notifications_enabled?: boolean | null
           theme?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      visa_documents: {
+        Row: {
+          country: string
+          created_at: string
+          document_number: string | null
+          document_type: string
+          expiry_date: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          document_number?: string | null
+          document_type: string
+          expiry_date: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          document_number?: string | null
+          document_type?: string
+          expiry_date?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

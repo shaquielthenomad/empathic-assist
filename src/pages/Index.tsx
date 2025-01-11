@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Hotel, Plane, Car, Calendar, Coffee } from "lucide-react";
+import { Hotel, Plane, Car, Calendar, Coffee, AlertTriangle } from "lucide-react";
 import { ServiceCard } from "@/components/ServiceCard";
 import { QuoteCard } from "@/components/QuoteCard";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface UserProfile {
   full_name: string | null;
@@ -17,10 +18,19 @@ interface UserPreferences {
   notifications_enabled: boolean | null;
 }
 
+interface VisaDocument {
+  id: string;
+  country: string;
+  expiry_date: string;
+  document_type: string;
+}
+
 const Index = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
+  const [expiringVisas, setExpiringVisas] = useState<VisaDocument[]>([]);
   const [loading, setLoading] = useState(true);
 
   const services = [
@@ -28,26 +38,31 @@ const Index = () => {
       icon: Hotel,
       title: "Book a Hotel",
       description: "Find and book luxury accommodations worldwide",
+      path: "/hotel-request"
     },
     {
       icon: Plane,
       title: "Flight Booking",
       description: "Premium flight reservations and travel arrangements",
+      path: "/flight-request"
     },
     {
       icon: Coffee,
       title: "Restaurant Reservations",
       description: "Access to exclusive dining experiences",
+      path: "/dining-request"
     },
     {
       icon: Car,
       title: "Transportation",
       description: "Luxury vehicle rentals and chauffeur services",
+      path: "/transport-request"
     },
     {
       icon: Calendar,
       title: "Event Planning",
       description: "Curated experiences and event organization",
+      path: "/event-request"
     },
   ];
 
@@ -58,16 +73,24 @@ const Index = () => {
         
         if (!user) throw new Error("No user found");
 
-        const [profileResult, preferencesResult] = await Promise.all([
+        const [profileResult, preferencesResult, visasResult] = await Promise.all([
           supabase.from("profiles").select("*").eq("id", user.id).single(),
-          supabase.from("user_preferences").select("*").eq("id", user.id).single()
+          supabase.from("user_preferences").select("*").eq("id", user.id).single(),
+          supabase.from("visa_documents")
+            .select("*")
+            .eq("user_id", user.id)
+            .gte("expiry_date", new Date().toISOString().split('T')[0])
+            .lte("expiry_date", new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+            .order("expiry_date")
         ]);
 
         if (profileResult.error) throw profileResult.error;
         if (preferencesResult.error) throw preferencesResult.error;
+        if (visasResult.error) throw visasResult.error;
 
         setProfile(profileResult.data);
         setPreferences(preferencesResult.data);
+        setExpiringVisas(visasResult.data);
       } catch (error) {
         console.error("Error fetching user data:", error);
         toast({
@@ -105,6 +128,25 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto py-12 space-y-12">
+        {expiringVisas.length > 0 && (
+          <section className="bg-amber/20 p-6 rounded-lg">
+            <div className="flex items-start gap-4">
+              <AlertTriangle className="text-amber w-6 h-6 mt-1" />
+              <div>
+                <h3 className="text-xl font-semibold text-cafe mb-2">Visa Alerts</h3>
+                <ul className="space-y-2">
+                  {expiringVisas.map((visa) => (
+                    <li key={visa.id} className="text-walnut">
+                      Your {visa.document_type} for {visa.country} expires on{" "}
+                      {new Date(visa.expiry_date).toLocaleDateString()}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </section>
+        )}
+
         <section className="space-y-6">
           <h2 className="text-3xl md:text-4xl text-cafe">How May We Assist You Today?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -113,10 +155,7 @@ const Index = () => {
                 key={service.title} 
                 {...service} 
                 onClick={() => {
-                  toast({
-                    title: "Coming Soon",
-                    description: `${service.title} service will be available soon.`,
-                  });
+                  navigate(service.path);
                 }}
               />
             ))}
@@ -139,10 +178,7 @@ const Index = () => {
               <Button 
                 className="w-full bg-amber hover:bg-amber/90 text-cafe"
                 onClick={() => {
-                  toast({
-                    title: "Coming Soon",
-                    description: "Membership upgrade feature will be available soon.",
-                  });
+                  navigate("/upgrade");
                 }}
               >
                 Upgrade to Premium
