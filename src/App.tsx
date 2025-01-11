@@ -9,6 +9,10 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import ServiceRequest from "./pages/ServiceRequest";
+import AdminDashboard from "./pages/AdminDashboard";
+import ChatInterface from "./pages/ChatInterface";
+import LandingPage from "./pages/LandingPage";
+import UpgradePage from "./pages/Upgrade";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +66,14 @@ const App = () => {
                 )
               }
             />
+            <Route
+              path="/landing"
+              element={<LandingPage />}
+            />
+            <Route
+              path="/upgrade"
+              element={<UpgradePage />}
+            />
             {/* Service Request Routes */}
             {[
               "/hotel-request",
@@ -82,6 +94,26 @@ const App = () => {
                 }
               />
             ))}
+            <Route
+              path="/admin-dashboard"
+              element={
+                isAuthenticated ? (
+                  <AdminDashboard />
+                ) : (
+                  <Navigate to="/auth" replace />
+                )
+              }
+            />
+            <Route
+              path="/chat"
+              element={
+                isAuthenticated ? (
+                  <ChatInterface />
+                ) : (
+                  <Navigate to="/auth" replace />
+                )
+              }
+            />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
