@@ -1,9 +1,28 @@
+import { useEffect, useState } from "react";
 import { Hotel, Plane, Car, Calendar, Coffee } from "lucide-react";
 import { ServiceCard } from "@/components/ServiceCard";
 import { QuoteCard } from "@/components/QuoteCard";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface UserProfile {
+  full_name: string | null;
+  avatar_url: string | null;
+}
+
+interface UserPreferences {
+  membership_tier: string | null;
+  theme: string | null;
+  notifications_enabled: boolean | null;
+}
 
 const Index = () => {
+  const { toast } = useToast();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [preferences, setPreferences] = useState<UserPreferences | null>(null);
+  const [loading, setLoading] = useState(true);
+
   const services = [
     {
       icon: Hotel,
@@ -32,12 +51,56 @@ const Index = () => {
     },
   ];
 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) throw new Error("No user found");
+
+        const [profileResult, preferencesResult] = await Promise.all([
+          supabase.from("profiles").select("*").eq("id", user.id).single(),
+          supabase.from("user_preferences").select("*").eq("id", user.id).single()
+        ]);
+
+        if (profileResult.error) throw profileResult.error;
+        if (preferencesResult.error) throw preferencesResult.error;
+
+        setProfile(profileResult.data);
+        setPreferences(preferencesResult.data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load user data. Please refresh the page.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [toast]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-isabelline flex items-center justify-center">
+        <p className="text-cafe">Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-isabelline">
       <header className="bg-white shadow-sm">
         <div className="container mx-auto py-6">
-          <h1 className="text-4xl md:text-5xl text-cafe">Hey Partner</h1>
-          <p className="text-walnut mt-2">Human Powered, AI Supported</p>
+          <h1 className="text-4xl md:text-5xl text-cafe">
+            Welcome, {profile?.full_name || "Partner"}
+          </h1>
+          <p className="text-walnut mt-2">
+            {preferences?.membership_tier || "Partner"} Member
+          </p>
         </div>
       </header>
 
@@ -46,7 +109,16 @@ const Index = () => {
           <h2 className="text-3xl md:text-4xl text-cafe">How May We Assist You Today?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service) => (
-              <ServiceCard key={service.title} {...service} />
+              <ServiceCard 
+                key={service.title} 
+                {...service} 
+                onClick={() => {
+                  toast({
+                    title: "Coming Soon",
+                    description: `${service.title} service will be available soon.`,
+                  });
+                }}
+              />
             ))}
           </div>
         </section>
@@ -57,11 +129,25 @@ const Index = () => {
             author="Audrey Hepburn"
           />
           <div className="space-y-6 p-6 bg-white rounded-lg shadow-sm">
-            <h3 className="text-2xl text-cafe">Join 521,280 others</h3>
-            <p className="text-walnut">Cultivating a life of gratitude and mindfulness</p>
-            <Button className="w-full bg-amber hover:bg-amber/90 text-cafe">
-              Become a Member
-            </Button>
+            <h3 className="text-2xl text-cafe">Your Membership Benefits</h3>
+            <p className="text-walnut">
+              {preferences?.membership_tier === "Premium" 
+                ? "Enjoy exclusive access to premium services and VIP support."
+                : "Upgrade to Premium for exclusive benefits and VIP support."}
+            </p>
+            {preferences?.membership_tier !== "Premium" && (
+              <Button 
+                className="w-full bg-amber hover:bg-amber/90 text-cafe"
+                onClick={() => {
+                  toast({
+                    title: "Coming Soon",
+                    description: "Membership upgrade feature will be available soon.",
+                  });
+                }}
+              >
+                Upgrade to Premium
+              </Button>
+            )}
           </div>
         </section>
       </main>
