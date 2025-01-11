@@ -1,47 +1,51 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/components/ui/use-toast";
+import { useEffect } from "react";
 
 const Auth = () => {
-  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
-        navigate("/onboarding");
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN") {
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        });
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [toast]);
 
   return (
     <div className="min-h-screen bg-isabelline flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-canela text-cafe">Welcome to Hey Partner</h1>
-          <p className="mt-2 text-walnut">Your Personal Concierge Service</p>
+      <div className="w-full max-w-md bg-white rounded-lg shadow-sm p-6 space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-semibold text-cafe">Welcome to Hey Partner</h1>
+          <p className="text-walnut">Sign in to continue to your account</p>
         </div>
-        <div className="bg-white p-8 rounded-lg shadow-sm">
-          <SupabaseAuth 
-            supabaseClient={supabase}
-            appearance={{
-              theme: ThemeSupa,
-              variables: {
-                default: {
-                  colors: {
-                    brand: '#FFBC2D',
-                    brandAccent: '#473729',
-                  },
+
+        <SupabaseAuth
+          supabaseClient={supabase}
+          appearance={{
+            theme: ThemeSupa,
+            variables: {
+              default: {
+                colors: {
+                  brand: '#967259',
+                  brandAccent: '#7d5e49',
                 },
               },
-            }}
-            providers={[]}
-          />
-        </div>
+            },
+          }}
+          providers={["google"]}
+          redirectTo={`${window.location.origin}/onboarding`}
+        />
       </div>
     </div>
   );

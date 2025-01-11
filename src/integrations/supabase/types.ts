@@ -52,6 +52,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          membership_tier: string | null
           notifications_enabled: boolean | null
           theme: string | null
           updated_at: string | null
@@ -59,6 +60,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id: string
+          membership_tier?: string | null
           notifications_enabled?: boolean | null
           theme?: string | null
           updated_at?: string | null
@@ -66,6 +68,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          membership_tier?: string | null
           notifications_enabled?: boolean | null
           theme?: string | null
           updated_at?: string | null
